@@ -27,6 +27,9 @@
         <Reference Include="Assembly-CSharp">
             <HintPath>lib/Assembly-CSharp.dll</HintPath>
         </Reference>
+        <Reference Include="Unity.Netcode.Runtime">
+            <HintPath>lib/Unity.Netcode.Runtime</HintPath>
+        </Reference>
     </ItemGroup>
 
     <ItemGroup>
@@ -61,6 +64,7 @@
 
     <Target Name="CopyDLL" AfterTargets="Build">
         <Copy SourceFiles="$(TargetPath)" DestinationFolder="$(LETHAL_COMPANY_PATH)\BepInEx\plugins" />
+        <Copy SourceFiles="$(TargetPath)" DestinationFolder="$(SolutionDir)\Thunderstore\BepInEx\plugins" />
     </Target>
 
     <Target Name="RunGame" AfterTargets="CopyDLL">

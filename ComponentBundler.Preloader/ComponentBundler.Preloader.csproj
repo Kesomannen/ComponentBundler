@@ -34,5 +34,6 @@
 
     <Target Name="CopyDLL" AfterTargets="Build">
         <Copy SourceFiles="$(TargetPath)" DestinationFolder="$(LETHAL_COMPANY_PATH)\BepInEx\patchers" />
+        <Copy SourceFiles="$(TargetPath)" DestinationFolder="$(SolutionDir)\Thunderstore\BepInEx\patchers" />
     </Target>
 </Project>

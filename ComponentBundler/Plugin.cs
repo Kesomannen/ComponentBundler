@@ -17,13 +17,13 @@ public class Plugin : BaseUnityPlugin {
         foreach (var target in ComponentBundlingPreloader.TargettedComponentFullNames) {
             var type = AccessTools.TypeByName(target);
             if (type == null) {
-                Log.LogError($"Type {target} not found!");
+                Log.LogError($"Type {target} not found! Did you forget to include the namespace?");
                 continue;
             }
             
             var awakeMethod = AccessTools.Method(type, ComponentBundlingPreloader.TargetMethodName);
             if (awakeMethod == null) {
-                Log.LogError($"Method {target}.Awake not found!");
+                Log.LogError($"Method {target}.Awake not found! Please report this to the mod author!");
                 continue;
             }
 
