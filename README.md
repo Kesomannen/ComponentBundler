@@ -13,7 +13,7 @@ This mod works by running a preload patcher which adds `Awake` methods where it 
 
 No code is required! 
 
-- Install the mod through thunderstore and add it as a dependency for your mod.
+- Install the mod through [thunderstore](https://thunderstore.io/c/lethal-company/p/Kesomannen/ComponentBundler/) and add it as a dependency for your mod.
 - Add a file to `BepInEx/plugins/<MyMod>/` called `bundler_config.json`.
 - The content should be a JSON object, where the keys are **namespaced names** of the game components you want to target. The values should be arrays of **namespaced names** of your components that you want to bundle. For example:
 ```json
