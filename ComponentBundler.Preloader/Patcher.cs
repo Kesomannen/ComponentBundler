@@ -12,12 +12,12 @@ public static class Patcher {
             yield return "Assembly-CSharp.dll";
         }
     }
-    
+
     public static void Patch(AssemblyDefinition assembly) {
         var preloaderDirectory = Path.GetDirectoryName(Assembly.GetExecutingAssembly().Location)!;
         var pluginsDirectory = Path.Combine(preloaderDirectory, "..", "plugins");
-        foreach (var subDirectories in Directory.GetDirectories(pluginsDirectory)) {
-            var files = Directory.GetFiles(subDirectories, "bundler_config.json");
+        foreach (var subDirectory in Directory.GetDirectories(pluginsDirectory)) {
+            var files = Directory.GetFiles(subDirectory, "bundler_config.json");
             if (files.Length == 0) continue;
             
             try {
@@ -25,17 +25,13 @@ public static class Patcher {
                 var json = JsonConvert.DeserializeObject<Dictionary<string, string[]>>(text);
                 foreach (var (key, value) in json) {
                     foreach (var v in value) {
-                        ComponentBundling.Bundle(assembly, key, v);
+                        ComponentBundlingPreloader.Bundle(assembly, key, v);
                     }
                 }
             }
             catch (JsonException e) {
-                ComponentBundling.Logger.LogError($"Failed to parse {files[0]}: {e.Message}");
+                ComponentBundlingPreloader.Logger.LogError($"Failed to parse config file in {subDirectory}: {e.Message}");
             }
         }
-    }
-
-    public static void Finish() {
-        
     }
 }

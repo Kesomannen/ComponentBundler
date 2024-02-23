@@ -26,20 +26,13 @@
         <Reference Include="Newtonsoft.Json">
             <HintPath>lib/Newtonsoft.Json.dll</HintPath>
         </Reference>
-        <Reference Include="Assembly-CSharp">
-            <HintPath>lib/Assembly-CSharp.dll</HintPath>
-        </Reference>
     </ItemGroup>
-    
+
     <PropertyGroup>
-        <LETHAL_COMPANY_PATH>C:\Program Files (x86)\Steam\steamapps\common\Lethal Company</LETHAL_COMPANY_PATH>
+        <LETHAL_COMPANY_PATH>D:\Program\Steam\steamapps\common\Lethal Company</LETHAL_COMPANY_PATH>
     </PropertyGroup>
 
     <Target Name="CopyDLL" AfterTargets="Build">
         <Copy SourceFiles="$(TargetPath)" DestinationFolder="$(LETHAL_COMPANY_PATH)\BepInEx\patchers" />
-    </Target>
-
-    <Target Name="RunGame" AfterTargets="CopyDLL">
-        <ExecAsync FilePath="&quot;$(LETHAL_COMPANY_PATH)\Lethal Company.exe&quot;" Arguments=" " />
     </Target>
 </Project>

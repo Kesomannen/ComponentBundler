@@ -1,27 +1,28 @@
-﻿using System;
-using System.Collections.Generic;
+﻿using System.Collections.Generic;
 using System.Linq;
 using BepInEx.Logging;
 using Mono.Cecil;
-using UnityEngine;
+using Mono.Cecil.Cil;
 using MethodAttributes = Mono.Cecil.MethodAttributes;
 
 namespace ComponentBundler.Preloader;
 
-public static class ComponentBundling {
+public static class ComponentBundlingPreloader {
     internal static readonly ManualLogSource Logger = BepInEx.Logging.Logger.CreateLogSource("ComponentBundler.Preloader");
     internal static readonly Dictionary<string, List<string>> BundledComponents = new();
 
-    const string TargetMethodName = "Awake";
+    public const string TargetMethodName = "Awake";
+
+    public static IReadOnlyCollection<string> TargettedComponentFullNames => BundledComponents.Keys;
     
     public static bool Bundle(
         AssemblyDefinition targetAssembly,
         string targetFullName,
-        string toAddAssemblyQualifiedName
+        string toAddFullName
     ) {
         if (BundledComponents.TryGetValue(targetFullName, out var bundle)) {
-            bundle.Add(toAddAssemblyQualifiedName);
-            Logger.LogInfo($"Bundled {toAddAssemblyQualifiedName} with {targetFullName}");
+            bundle.Add(toAddFullName);
+            Logger.LogInfo($"Bundled {toAddFullName} with {targetFullName}");
             return true;
         }
 
@@ -40,25 +41,33 @@ public static class ComponentBundling {
         if (targetTypeDefinition.Methods.All(m => m.Name != TargetMethodName)) {
             var methodDefinition = new MethodDefinition(
                 TargetMethodName,
-                MethodAttributes.Public,
+                MethodAttributes.Private | MethodAttributes.HideBySig,
                 targetAssembly.MainModule.TypeSystem.Void
             );
 
             targetTypeDefinition.Methods.Add(methodDefinition);
+            methodDefinition.Body.Instructions.Add(
+                Instruction.Create(OpCodes.Ret)
+            );
+            Logger.LogInfo($"Added {TargetMethodName} to {targetFullName}");
         }
         
-        BundledComponents.Add(targetFullName, new List<string> { toAddAssemblyQualifiedName });
-        Logger.LogInfo($"Bundled {toAddAssemblyQualifiedName} with {targetFullName}");
+        BundledComponents.Add(targetFullName, new List<string> { toAddFullName });
+        Logger.LogInfo($"Bundled {toAddFullName} with {targetFullName}");
         return true;
     }
     
-    public static bool TryGetBundle(string targetComponentFullName, out IReadOnlyList<string> bundle) {
-        if (!BundledComponents.TryGetValue(targetComponentFullName, out var result)) {
-            bundle = null;
-            return false;
+    public static IEnumerable<string> GetBundle(string targetComponentFullName) {
+        return BundledComponents.TryGetValue(targetComponentFullName, out var result) ? result : Enumerable.Empty<string>();
+    }
+    
+    public static bool TryGetBundle(string targetComponentFullName, out IEnumerable<string> bundle) {
+        if (BundledComponents.TryGetValue(targetComponentFullName, out var result)) {
+            bundle = result;
+            return true;
         }
         
-        bundle = result;
-        return true;
+        bundle = Enumerable.Empty<string>();
+        return false;
     }
 }
