@@ -46,9 +46,7 @@ public static class ComponentBundlingPreloader {
             );
 
             targetTypeDefinition.Methods.Add(methodDefinition);
-            methodDefinition.Body.Instructions.Add(
-                Instruction.Create(OpCodes.Ret)
-            );
+            methodDefinition.Body.Instructions.Add(Instruction.Create(OpCodes.Ret));
             Logger.LogInfo($"Added {TargetMethodName} to {targetFullName}");
         }
         

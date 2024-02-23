@@ -16,6 +16,7 @@ public static class Patcher {
     public static void Patch(AssemblyDefinition assembly) {
         var preloaderDirectory = Path.GetDirectoryName(Assembly.GetExecutingAssembly().Location)!;
         var pluginsDirectory = Path.Combine(preloaderDirectory, "..", "plugins");
+        
         foreach (var subDirectory in Directory.GetDirectories(pluginsDirectory)) {
             var files = Directory.GetFiles(subDirectory, "bundler_config.json");
             if (files.Length == 0) continue;
@@ -23,13 +24,12 @@ public static class Patcher {
             try {
                 var text = File.ReadAllText(files[0]);
                 var json = JsonConvert.DeserializeObject<Dictionary<string, string[]>>(text);
-                foreach (var (key, value) in json) {
-                    foreach (var v in value) {
-                        ComponentBundlingPreloader.Bundle(assembly, key, v);
+                foreach (var (target, components) in json) {
+                    foreach (var component in components) {
+                        ComponentBundlingPreloader.Bundle(assembly, target, component);
                     }
                 }
-            }
-            catch (JsonException e) {
+            } catch (JsonException e) {
                 ComponentBundlingPreloader.Logger.LogError($"Failed to parse config file in {subDirectory}: {e.Message}");
             }
         }

@@ -4,6 +4,6 @@
     "website_url": "https://github.com/Kesomannen/ComponentBundler",
     "description": "Mod utility for adding components in Awake",
     "dependencies": [
-        
+        "BepInEx-BepInExPack-5.4.2100"
     ]
 }
