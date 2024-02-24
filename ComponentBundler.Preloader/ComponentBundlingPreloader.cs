@@ -28,7 +28,7 @@ public static class ComponentBundlingPreloader {
 
         var targetTypeDefinition = targetAssembly.MainModule.GetType(targetFullName);
         if (targetTypeDefinition == null) {
-            var message = $"Type {targetFullName} not found in assembly {targetAssembly.Name.Name}.";
+            var message = $"Target type {targetFullName} not found in {targetAssembly.Name.Name}!";
 
             if (!targetFullName.Contains('.')) {
                 message += " Did you forget to include the namespace?";
@@ -42,11 +42,11 @@ public static class ComponentBundlingPreloader {
             var methodDefinition = new MethodDefinition(
                 TargetMethodName,
                 MethodAttributes.Private | MethodAttributes.HideBySig,
-                targetAssembly.MainModule.TypeSystem.Void
+                targetAssembly.MainModule.TypeSystem.Void 
             );
 
-            targetTypeDefinition.Methods.Add(methodDefinition);
             methodDefinition.Body.Instructions.Add(Instruction.Create(OpCodes.Ret));
+            targetTypeDefinition.Methods.Add(methodDefinition);
             Logger.LogInfo($"Added {TargetMethodName} to {targetFullName}");
         }
         
