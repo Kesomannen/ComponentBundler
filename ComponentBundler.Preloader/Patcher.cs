@@ -1,4 +1,5 @@
-﻿using System.Collections.Generic;
+﻿using System;
+using System.Collections.Generic;
 using System.IO;
 using System.Reflection;
 using Mono.Cecil;
@@ -14,36 +15,49 @@ public static class Patcher {
     }
 
     public static void Patch(AssemblyDefinition assembly) {
-        var currentDirectory = Path.GetDirectoryName(Assembly.GetExecutingAssembly().Location)!;
+        var pluginDirectory = Path.GetDirectoryName(Assembly.GetExecutingAssembly().Location)!;
         while (true) {
-            currentDirectory = Path.Combine(currentDirectory, "..");
-            if (Directory.Exists(Path.Combine(currentDirectory, "plugins")))
+            pluginDirectory = Path.Combine(pluginDirectory, "..");
+            if (Directory.Exists(Path.Combine(pluginDirectory, "plugins"))) {
                 break;
+            }
         }
         
-        foreach (var subDirectory in Directory.GetDirectories(currentDirectory)) {
-            SearchDirectory(subDirectory);
+        RecursiveSearch<Dictionary<string, string[]>>(pluginDirectory, "bundler_config", file => {
+            foreach (var (target, components) in file) {
+                foreach (var component in components) {
+                    ComponentBundlingPreloader.Bundle(assembly, target, component);
+                }
+            }
+        });
+        
+        RecursiveSearch<Dictionary<string, string[]>>(pluginDirectory, "method_gen_config", file => {
+            foreach (var (target, methods) in file) {
+                foreach (var method in methods) {
+                    MethodGenerator.CreateMethod(assembly, target, method);
+                }
+            }
+        });
+    }
+
+    static void RecursiveSearch<T>(string pluginDirectory, string fileName, Action<T> action) {
+        foreach (var subDirectory in Directory.GetDirectories(pluginDirectory)) {
+            SearchDirectory(subDirectory, fileName, action);
             foreach (var subSubDirectory in Directory.GetDirectories(subDirectory)) {
-                SearchDirectory(subSubDirectory);
+                SearchDirectory(subSubDirectory, fileName, action);
             }
         }
-        return;
-
-        void SearchDirectory(string directory) {
-            var files = Directory.GetFiles(directory, "bundler_config.json");
-            if (files.Length == 0) return;
+    }
+    
+    static void SearchDirectory<T>(string directory, string fileName, Action<T> action) {
+        var files = Directory.GetFiles(directory, fileName + ".json");
+        if (files.Length == 0) return;
             
-            try {
-                var text = File.ReadAllText(files[0]);
-                var json = JsonConvert.DeserializeObject<Dictionary<string, string[]>>(text);
-                foreach (var (target, components) in json) {
-                    foreach (var component in components) {
-                        ComponentBundlingPreloader.Bundle(assembly, target, component);
-                    }
-                }
-            } catch (JsonException e) {
-                ComponentBundlingPreloader.Logger.LogError($"Failed to parse config file in {directory}: {e.Message}");
-            }
+        try {
+            var text = File.ReadAllText(files[0]);
+            action(JsonConvert.DeserializeObject<T>(text));
+        } catch (JsonException e) {
+            ComponentBundlingPreloader.Logger.LogError($"Failed to parse config file in {directory}: {e.Message}");
         }
     }
 }

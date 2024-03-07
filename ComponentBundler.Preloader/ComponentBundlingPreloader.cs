@@ -2,16 +2,12 @@
 using System.Linq;
 using BepInEx.Logging;
 using Mono.Cecil;
-using Mono.Cecil.Cil;
-using MethodAttributes = Mono.Cecil.MethodAttributes;
 
 namespace ComponentBundler.Preloader;
 
 public static class ComponentBundlingPreloader {
     internal static readonly ManualLogSource Logger = BepInEx.Logging.Logger.CreateLogSource("ComponentBundler.Preloader");
     internal static readonly Dictionary<string, List<string>> BundledComponents = new();
-
-    public const string TargetMethodName = "Awake";
 
     public static IReadOnlyCollection<string> TargettedComponentFullNames => BundledComponents.Keys;
     
@@ -25,30 +21,8 @@ public static class ComponentBundlingPreloader {
             Logger.LogInfo($"Bundled {toAddFullName} with {targetFullName}");
             return true;
         }
-
-        var targetTypeDefinition = targetAssembly.MainModule.GetType(targetFullName);
-        if (targetTypeDefinition == null) {
-            var message = $"Target type {targetFullName} not found in {targetAssembly.Name.Name}!";
-
-            if (!targetFullName.Contains('.')) {
-                message += " Did you forget to include the namespace?";
-            }
-            
-            Logger.LogError(message);
-            return false;
-        }
         
-        if (targetTypeDefinition.Methods.All(m => m.Name != TargetMethodName)) {
-            var methodDefinition = new MethodDefinition(
-                TargetMethodName,
-                MethodAttributes.Private | MethodAttributes.HideBySig,
-                targetAssembly.MainModule.TypeSystem.Void 
-            );
-
-            methodDefinition.Body.Instructions.Add(Instruction.Create(OpCodes.Ret));
-            targetTypeDefinition.Methods.Add(methodDefinition);
-            Logger.LogInfo($"Added {TargetMethodName} to {targetFullName}");
-        }
+        MethodGenerator.CreateMethod(targetAssembly, targetFullName, "Awake");
         
         BundledComponents.Add(targetFullName, new List<string> { toAddFullName });
         Logger.LogInfo($"Bundled {toAddFullName} with {targetFullName}");

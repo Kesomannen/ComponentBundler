@@ -1,17 +1,38 @@
 # ComponentBundler
 
-Utility mod for Lethal Company (and any game with BepInEx) which allows you to bundle your own components with built-in ones. 
-The main use case of this mod is to add a `NetworkBehaviour` before the `NetworkObject` is spawned.
-The reason we can't just patch a script on the target `NetworkObject` to do this is because of two reasons:
+Mod utility for Lethal Company (and any game with BepInEx) which allows you to add methods to the game's classes and easily bundle your own components with built-in ones. The main use case for the former is to add missing unity callback methods, such as `OnDestroy` and `Awake`. 
 
-- `NetworkObject` spawning occurs after `Awake` but *before* `Start`.
-- Most `MonoBehaviours` in the game *don't* have an Awake method, and it cannot be added through runtime patching (Harmony).
+The main use case of component bundling is to inject your own `NetworkBehaviours`. This is usually difficult because of these reasons:
 
-This mod works by running a preload patcher which adds `Awake` methods where it is needed.
+- `NetworkBehaviours` cannot be added after the corresponding `NetworkObject` has been spawned.
+- Spawning usually occurs *after* `Start`, but before `Awake`.
+- Most of the game's `MonoBehaviours` *don't* have `Awake` methods to patch into in order to add your own `NetworkBehaviours`.
+
 
 ## Usage
 
-No code is required! 
+No code is required!
+
+### Adding methods
+
+- Install the mod through [thunderstore](https://thunderstore.io/c/lethal-company/p/Kesomannen/ComponentBundler/) and add it as a dependency for your mod.
+- Add a file to `BepInEx/plugins/<MyMod>/` called `method_gen_config.json`.
+- The content should be a JSON object, where the keys are **namespaced names** of the classes you want to target. The values should be arrays of methods you want to add. Note that you can only specify the method name: you cannot add arguments or a return type. For example:
+```json
+{
+    "HUDManager": [
+        "Awake",
+        "OnDestroy"
+    ],
+    "GameNetcodeStuff.PlayerControllerB": [
+        "Awake"
+    ]
+}
+```
+- You can now patch the generated methods with Harmony to add custom functionality!
+
+
+### Bundling components
 
 - Install the mod through [thunderstore](https://thunderstore.io/c/lethal-company/p/Kesomannen/ComponentBundler/) and add it as a dependency for your mod.
 - Add a file to `BepInEx/plugins/<MyMod>/` called `bundler_config.json`.

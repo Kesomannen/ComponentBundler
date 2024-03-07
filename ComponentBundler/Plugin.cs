@@ -22,7 +22,7 @@ public class Plugin : BaseUnityPlugin {
         foreach (var target in ComponentBundlingPreloader.TargettedComponentFullNames) {
             var targetType = AccessTools.TypeByName(target)!; // this is already validated in ComponentBundlingPreloader
             
-            var awakeMethod = AccessTools.Method(targetType, ComponentBundlingPreloader.TargetMethodName);
+            var awakeMethod = AccessTools.Method(targetType, "Awake");
             if (awakeMethod == null) {
                 Log.LogError($"Method {target}.Awake not found, please report this to the mod author");
                 continue;
